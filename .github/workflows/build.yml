@@ -1,12 +1,15 @@
 # Builds the Windows, Linux and Arch packages on every push and pull request
-# (downloadable from the run's "Artifacts"). Pushing a tag like v1.0.0 also
-# makes a GitHub Release with the packages attached.
+# (downloadable from the run's "Artifacts"). Publishing a release on the
+# website (Releases > Draft a new release, tag like v1.0.0) builds again and
+# attaches the packages to that release. Running the workflow by hand
+# (Actions > build > Run workflow) on a tag does the same.
 name: build
 
 on:
   push:
     branches: ["**"]
-    tags: ["v*"]
+  release:
+    types: [published]
   pull_request:
   workflow_dispatch:
 
@@ -77,7 +80,7 @@ jobs:
           ls -la *.pkg.tar.zst
 
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name == 'release' || startsWith(github.ref, 'refs/tags/v')
     needs: [packages, arch-check]
     runs-on: ubuntu-24.04
     steps:
