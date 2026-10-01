@@ -1,0 +1,25 @@
+# Open AncientEvil: an open source port of Ancient Evil v1.11 (1998).
+# Build and install with:  makepkg -si
+# The game data is not included; see the post-install message.
+pkgname=ancientevil
+epoch=1   # (the earlier builds were numbered by date)
+pkgver=2026.09.29
+pkgrel=1
+pkgdesc="Open AncientEvil: open source port of the 1998 isometric RPG Ancient Evil (needs the original game files)"
+arch=('x86_64')
+license=('MIT')
+depends=('sdl2' 'ffmpeg' 'gcc-libs' 'glibc')
+makedepends=('pkgconf')
+install=ancientevil.install
+source=("ancientevil-$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+    cd "ancientevil-$pkgver"
+    make
+}
+
+package() {
+    cd "ancientevil-$pkgver"
+    make DESTDIR="$pkgdir" PREFIX=/usr install
+}

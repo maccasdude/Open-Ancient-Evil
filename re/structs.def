@@ -1,0 +1,534 @@
+// Game data structures (sizes are those of the original 32-bit layout).
+
+struct ConvNode {          // conversation topic
+    int32 topic;           // index into gConvTopics
+    int32 state;           // 4 = offered, 2 = hidden, 1 = used up
+    int32 answer;          // paragraph in gConvAnswers, -1 none
+    int32 flags;           // 0x02 hide after use, 0x04 end conversation, 0x08 set result, 0x10 costs gold
+    int32 costText;        // paragraph in gConvCostTexts (or result value)
+    int32 cost;            // gold
+    ConvNode *next;
+};
+
+struct ConvHeader {
+    int32 portrait;        // index into gFaces
+    ConvNode *first;
+    int32 greeting;        // paragraph in gConvGreetings, -1 none
+    int32 farewell;        // paragraph in gConvFarewells, -1 none
+    cstr voice;            // speech file prefix
+    int32 voiceVariant;
+};
+
+struct MenuItem {
+    cstr text;
+    uint16 color;
+    int8 hotkey;           // upper-case key, -1 none
+    int8 pad0;
+    uint16 hiColor;        // highlight colour
+    int16 pad1;
+    int32 id;
+    int32 x;               // -1 = centred
+    int32 y;
+    int32 left;            // hit rectangle
+    int32 top;
+    int32 right;
+    int32 bottom;
+};
+
+struct Prefs {             // PREFS.CFG (0x24 bytes)
+    int32 cdVolume;
+    int32 wavVolume;
+    int32 flags;
+    int16 mouseSpeed;      // +0x0c
+    int16 w0e;
+    int32 shadows;
+    int32 hints;           // +0x14
+    int32 alwaysRun;       // +0x18
+    int32 d1c;
+    int32 gamma;
+};
+
+struct SpawnDrop {
+    int16 item;            // -1 = none
+    int16 qty;
+};
+
+struct SpawnRecord {       // monster placement (0x1c)
+    int32 x;
+    int32 y;
+    uint8 aiMode;
+    uint8 type;            // index into gMonsterStatsTable
+    uint8 b0a;
+    uint8 b0b;
+    int32 angle;
+    SpawnDrop drops[3];
+};
+
+struct MonsterStats {      // 0xa0
+    uint8 dmgBase;         // +0x00
+    uint8 dmgRange;        // +0x01 attack roll
+    uint8 defence;         // +0x02
+    uint8 aiClass;         // +0x03
+    uint8 dmgExtra;        // +0x04
+    uint8 maxHp;           // +0x05
+    uint8 b06;
+    uint8 b07;
+    float moveStep;        // +0x08
+    int32 idleDiv;         // +0x0c
+    float radius;          // +0x10
+    float reach;           // +0x14
+    uint8 b18;             // +0x18
+    uint8 poisonChance;    // +0x19
+    uint8 fearResist;      // +0x1a
+    uint8 specialChance;   // +0x1b
+    uint8 spellResist;     // +0x1c
+    uint8 magicResist;     // +0x1d
+    uint8 holdResist;      // +0x1e
+    uint8 b1f;
+    int32 fireResist;      // +0x20 percent
+    int32 coldResist;      // +0x24 percent
+    uint8 b28;
+    uint8 regenerates;     // +0x29
+    uint8 drainChance;     // +0x2a
+    uint8 ranged;          // +0x2b
+    uint8 rangedDelay;     // +0x2c
+    uint8 weaponLevel;     // +0x2d minimum weapon level that hurts
+    uint8 b2e;
+    uint8 b2f;
+    int32 acidic;          // +0x30
+    uint8 regenRate;       // +0x34
+    uint8 bloodType;       // +0x35
+    uint8 corpse;          // +0x36
+    uint8 b37;
+    int32 opensDoors;      // +0x38
+    int32 ignoresFloor;    // +0x3c
+    uint8 attitude;        // +0x40
+    uint8 b41;
+    uint8 b42;
+    uint8 b43;
+    int32 fleeHp;          // +0x44
+    int32 xp;              // +0x48
+    uint8 flags;           // +0x4c
+    uint8 attackAnim;      // +0x4d
+    uint8 attackAnimCount; // +0x4e
+    uint8 rangedAnim;      // +0x4f
+    uint8 deathAnim;       // +0x50
+    char amtName[16];      // +0x51
+    char texName[19];      // +0x61
+    cstr *name;            // +0x74
+    float scale;           // +0x78 model scale for the renderer
+    int32 idleSound;       // +0x7c
+    int32 idleSoundChance; // +0x80
+    int32 alertSound;      // +0x84
+    int32 attackSound;     // +0x88
+    int32 hurtSound;       // +0x8c
+    int32 deathSound;      // +0x90
+    int32 allyType;        // +0x94
+    int32 blocks;          // +0x98 blocks the player
+    int32 d9c;             // +0x9c
+};
+
+struct MonsterTableEntry { // loaded model/texture per monster type (0x10)
+    MonsterStats *stats;
+    AnimSet *anim;
+    Texture *tex;
+    int32 d0c;
+};
+
+extern struct Vec3 {
+    float x;
+    float y;
+    float z;
+};
+
+struct Wound {             // 0x18
+    int32 active;
+    uint16 color;
+    int16 pad;
+    int32 x0;
+    int32 y0;
+    int32 x1;
+    int32 y1;
+};
+
+struct MonsterCell (pack 1) {
+    uint8 count;
+    uint8 ids[8];
+};
+
+struct Door {              // 0x12
+    int16 active;
+    int16 level;           // level + 1
+    int16 x;
+    int16 y;
+    int16 orient;
+    int16 kind;
+    int16 open;
+    int16 lock;            // 0x14 = locked for monsters
+    int16 timer;           // +0x10 opening / closing progress
+};
+
+struct InvSlot {
+    int16 item;            // -1 = empty
+    int16 qty;
+};
+
+struct PlayerStats {       // 0x64 (save block 0)
+    char name[20];
+    int32 baseStr;         // +0x14 rolled Strength
+    int32 baseTou;         // +0x18 Toughness
+    int32 baseDex;         // +0x1c Dexterity
+    int32 baseInt;         // +0x20 Intellect
+    int32 str;             // +0x24 current Strength
+    int32 tou;             // +0x28 Toughness
+    int32 dex;             // +0x2c Dexterity
+    int32 intel;           // +0x30 Intellect
+    int32 hp;              // +0x34
+    int32 maxHp;           // +0x38
+    int32 mana;            // +0x3c spell energy
+    int32 maxMana;         // +0x40
+    int32 magicXp;         // +0x44
+    int32 maxSpellLevel;   // +0x48
+    int32 xp;              // +0x4c
+    int32 level;           // +0x50 experience level
+    int32 charClass;       // +0x54  0 warrior, 1 spellcaster, 2 ranger, 3 thief
+    int32 s58;
+    int32 portrait;        // +0x5c
+    float maxWeight;       // +0x60 carrying capacity (Str * 2.5)
+};
+
+struct Player {            // 0xbc (save block 1)
+    float x;               // +0x00
+    float y;
+    int32 tileX;           // +0x08
+    int32 tileY;
+    float destX;           // +0x10 walk target
+    float destY;           // +0x14
+    int32 teleX;           // +0x18 teleport destination
+    int32 teleY;           // +0x1c
+    int32 angle;           // +0x20
+    int32 turnAngle;       // +0x24
+    float depth;           // +0x28 screen depth (objects in front are dithered)
+    float fxScale;         // +0x2c model vertex scale
+    int32 sx;              // +0x30 screen position
+    int32 sy;              // +0x34
+    int32 rect[4];         // +0x38 screen rect of the player model
+    int32 gameMode;        // +0x48 action state (0 idle, 2 walk, 5 jump, 9 cast...)
+    int32 pendingAction;   // +0x4c done after turning (40 attack, 50+spell, 80 shoot)
+    int32 actionFrame;     // +0x50
+    int32 animKind;        // +0x54 0 normal, 1 magic, 2 jump, 3 flute
+    int32 animFrame;       // +0x58
+    int32 jumpCharge;      // +0x5c
+    int32 p60;
+    int32 jumpStep;        // +0x64
+    int32 jumpSteps;       // +0x68
+    float jumpDist;        // +0x6c
+    int32 currentSpell;    // +0x70
+    int32 castSpell;       // +0x74 spell being cast
+    int32 height;          // +0x78 floor height under the player
+    uint32 gold;           // +0x7c
+    int32 arrows;          // +0x80
+    int32 poisoned;        // +0x84
+    int32 diseased;        // +0x88
+    int32 diseaseTime;     // +0x8c
+    int32 fatigue;         // +0x90 too tired to cast above 250000
+    int32 identify;        // +0x94 identify spell (true item names)
+    int32 forceField;      // +0x98
+    int32 stoneSkin;       // +0x9c
+    int32 magicShield;     // +0xa0
+    uint32 invisibility;   // +0xa4
+    int32 resistUndead;    // +0xa8
+    int32 restTime;        // +0xac
+    float speed;           // +0xb0
+    uint8 attacking;       // +0xb4
+    uint8 bowCooldown;     // +0xb5
+    uint8 bb6, bb7;
+    int32 noise;           // +0xb8 heard by monsters
+};
+
+struct Equipment {         // 0x24 (save block 4)
+    int32 weaponType;      // +0x00
+    int32 ring1;           // +0x04
+    int32 ring2;           // +0x08
+    int32 e0c;
+    int32 shield;          // +0x10 slot 4 (2 = torch)
+    int32 e14;
+    int32 armourType;      // +0x18
+    int32 e1c;
+    int32 difficulty;      // +0x20
+};
+
+struct Projectile {        // 0x38, 10 at 0x5b5270 (save block)
+    int32 active;          // 0 free, 1 flying, 2 exploding, 13 finished
+    float x, y;
+    int32 tileX, tileY;    // +0x0c
+    int32 sx, sy;          // +0x14 screen position
+    int32 kind;            // +0x1c
+    int32 flags;           // +0x20 bit0: summon a servant on impact
+    int32 angle;           // +0x24
+    int32 timer;           // +0x28
+    float scale;           // +0x2c
+    int32 power;           // +0x30
+    uint8 light;           // +0x34
+};
+
+struct Rat {               // 0x24
+    float x, y;
+    int32 sx, sy;          // +0x08
+    int32 tileX, tileY;    // +0x10
+    uint8 f18;
+    uint8 state;           // +0x19 0 resting, 2 running
+    int32 angle;           // +0x1c
+    uint8 timer;           // +0x20
+    uint8 light;           // +0x21
+};
+
+struct Servant {           // 0x80, 10 at 0x5b91d0 (save block)
+    int32 active;
+    float x, y;            // +0x04
+    int32 angle;           // +0x0c
+    int32 sx, sy;          // +0x10 screen position
+    int32 action;          // +0x18 4 decide, 5 walk, 6 attack
+    int32 counter;         // +0x1c
+    int32 mode;            // +0x20 1 seek, 2 fight, 3 vanish
+    int32 targetIdx;       // +0x24
+    int32 wanderAngle;     // +0x28
+    Monster* target;       // +0x2c
+    float destX, destY;    // +0x30
+    int32 life;            // +0x38
+    obj:AnimSet@0x3c anim; // +0x3c
+    Model* model;          // +0x78
+    int32 f7c;
+};
+
+struct Trap (pack 2) {     // 0x12, dart traps triggered by pressure plates
+    int16 level;           // level number + 1, -1 terminates
+    int16 srcX, srcY;      // +0x02 where the projectile starts
+    int16 trigX, trigY;    // +0x06 trigger tile
+    int16 kind;            // +0x0a projectile kind
+    int16 angle;           // +0x0c
+    int32 lastTime;        // +0x0e
+};
+
+struct Feature (pack 2) {  // 0x0a, 875 at 0x53fbd0 (level chunk 'F')
+    int16 active;
+    int16 level;           // +0x02
+    int16 x, y;            // +0x04
+    int16 sprite;          // +0x08
+};
+
+struct LevelItem (pack 2) { // 0x0e, 1500 at 0x59c320 (level chunk 'I')
+    int16 active;
+    int16 type;            // +0x02 item number
+    int16 level;           // +0x04 level + 1
+    int16 x, y;            // +0x06
+    int16 fa;              // +0x0a (negative = hidden)
+    int16 fc;
+};
+
+struct Light {             // 0x10, 750 at 0x5b5ae8 (level chunk 'l')
+    int32 f0, f4, f8, fc;
+};
+
+struct LevelAux (pack 2) { // 0x08, 400 at 0x53c450 (level chunk 'a'): animated tiles
+    int16 level;
+    int16 x, y;            // +0x02
+    int16 kind;            // +0x06
+};
+
+struct SampleInfo {        // 0x0c, 106 at 0x448c38
+    cstr name;             // WAV\<name>.WAV
+    uint8 onDemand;        // 0 = loaded at start-up
+    int32 lastUsed;        // +0x08 gTime of the last use
+};
+
+struct EVSound {           // 0x18, 6 at 0x449248: looping environment sounds
+    int32 level;
+    int32 x, y;            // +0x04 tile
+    int32 sound;           // +0x0c sample number
+    int32 playing;         // +0x10
+    Sound* dup;            // +0x14 private copy of the sample
+};
+
+struct LevelObj {          // 0x38, 200 at 0x571140 (save block): animated objects
+    uint8 active;
+    int32 level;           // +0x04
+    int32 x, y;            // +0x08
+    int32 kind;            // +0x10
+    int32 frame;           // +0x14
+    int32 sx, sy;          // +0x18
+    int32 w, h;            // +0x20
+    int32 x0, y0, x1, y1;  // +0x28 screen rectangle
+};
+
+struct Decal (pack 2) {    // 0x0e, 600 at 0x5aaab8 (save block): blood etc.
+    int16 active;
+    int16 level;           // level + 1
+    int16 x, y;            // +0x04
+    int16 sprite;          // +0x08
+    int16 fa, fc;
+};
+
+struct VisItem {           // 0x1c, 300 at 0x5ba080
+    int32 idx;             // index into gLevelItems, -1 free
+    int32 sx, sy;
+    int32 rect[4];         // +0x0c RECT
+};
+
+struct VisFeature {        // 0x68, 200 at 0x5afde0
+    obj:FGObject@0x4c fg;  // +0x00
+    int32 sprite;          // +0x4c
+    int32 feature;         // +0x50
+    int32 active;          // +0x54
+    int32 rect[4];         // +0x58 RECT
+};
+
+struct VisDoor {           // 0x30, 12 at 0x5acc30
+    int32 active;
+    int32 door;            // +0x04
+    int32 sx, sy;          // +0x08
+    float depth1, depth2;  // +0x10
+    CSprite16* sprA;       // +0x18
+    CSprite16* sprB;       // +0x1c
+    int32 rect[4];         // +0x20 RECT
+};
+
+struct WallEntry {         // 0x24, 200 at 0x5bc1f0
+    int32 x, y;
+    int32 sx, sy;          // +0x08
+    int32 f10, f14;
+    float depth;           // +0x18
+    int32 sprite;          // +0x1c
+    uint8 f20;
+};
+
+struct TileEntry {         // 0x14, 550 at 0x5a7ee0
+    int32 x, y;
+    int32 sx, sy;          // +0x08
+    int32 overlay;         // +0x10
+};
+
+struct AnimTile {          // 0x14, 160 at 0x5be7c8
+    int32 x, y;
+    int32 kind;            // +0x08
+    int32 frame;           // +0x0c
+    int32 counter;         // +0x10
+};
+
+struct Message {           // 0x44, on-screen message line
+    char text[60];
+    int16 color;           // +0x3c
+    int16 pad;
+    int32 time;            // +0x40
+};
+
+struct Container {         // 0x48, 26 at 0x5a67a8 (chests etc.)
+    int16 level;           // level + 1, -1 terminates
+    int16 pad;
+    int32 pos[6];          // +0x04 up to three (x, y) tiles
+    uint8 type;            // +0x1c sprite pair index
+    uint8 closed;          // +0x1d 0 open, 2 closed
+    uint8 needsKey;        // +0x1e
+    uint8 b1f;
+    int32 trapped;         // +0x20
+    int32 examined;        // +0x24 trap found
+    InvSlot items[8];      // +0x28
+};
+
+struct Sparkle {           // 0x18, 20 at 0x5a75c0
+    uint8 active;
+    uint8 pad[3];
+    int32 x, y;            // +0x04 tile
+    int32 sx, sy;          // +0x0c screen
+    int32 timer;           // +0x14
+};
+
+struct LevelLink {         // 0x18, stairs between levels
+    int32 level;
+    int32 x, y;
+    int32 destLevel;       // +0x0c
+    int32 destX, destY;    // +0x10
+};
+
+struct SignText {          // 0x14
+    int32 level;
+    int32 x, y;
+    cstr text1;            // +0x0c
+    cstr text2;            // +0x10
+};
+
+struct Book {              // 0x3c, at 0x44b360 (bookshelf contents)
+    int32 level;           // level + 1, -1 ends
+    int32 x, y;            // shelf tile (either of two)
+    int32 x2, y2;
+    int32 pcx;             // page background (gBookPcxNames)
+    char file[10];         // +0x18 gamedat\<file>.BOK
+    char title[26];        // +0x22
+};
+
+struct WarpTile {              // 0x14, 200 at 0x5a54a8 (initial copy at 0x44d008)
+    int32 level;           // level + 1, -1 ends
+    int32 x, y;            // warp tile (map tile 2 or 3)
+    int32 destX, destY;
+};
+
+struct TriggerSwitch {     // 0x10
+    int32 level;           // level + 1, 0 unused
+    int32 x, y;
+    uint8 state;           // +0x0c current state
+    uint8 want;            // +0x0d state that makes the group fire
+    uint8 pad0, pad1;
+};
+
+struct TriggerGroup {      // 0x98, 60 at 0x573d00 (initial copy at 0x44dfd8)
+    int32 type;            // 1 walls, 2 door, 3 features, 4 warp, 5 remove features
+    int32 param;           // index into the type's table; -1 ends
+    TriggerSwitch sw[9];
+};
+
+struct TrigWall {          // 0x0c
+    int32 x, y;            // -1 unused
+    uint8 onTile, offTile;
+    uint8 pad0, pad1;
+};
+
+struct TrigDoor {          // 0x0c
+    int32 x, y;
+    int16 lock;
+    int16 pad;
+};
+
+struct TrigFeature {       // 0x0c
+    int32 x, y;            // -1 unused
+    int32 sprite;
+};
+
+struct TrigWarp {          // 0x1c
+    int32 level;
+    int32 x, y;            // warp to redirect
+    int32 offX, offY;
+    int32 onX, onY;
+};
+
+struct TrigPos {           // 0x08
+    int32 x, y;            // -1 unused
+};
+
+struct SaveHeader {        // 0x40, first block of SAVEn.AE (copies at 0x5cb548)
+    int32 version;         // 0x10002
+    uint8 key[32];         // +0x04 XOR key for the data blocks
+    char magic[4];         // +0x24 "AE1"
+    char desc[21];         // +0x28 player's name for the save
+    uint8 keyLen;          // +0x3d
+    uint8 pad0, pad1;
+};
+
+struct Burner {            // 0x20, 4 at 0x541e18: flames from fire traps
+    int32 active;
+    int32 x, y;            // +0x04 tile
+    int32 kind;            // +0x0c 0 or 1
+    int32 state;           // +0x10 0 igniting, 1 burning, 2 dying
+    int32 frame;           // +0x14
+    int32 f18;
+    int32 sprite;          // +0x1c gArmsSprites index
+};

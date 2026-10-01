@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Open AncientEvil
+GenericName=Role-playing game
+Comment=Open source port of Ancient Evil (1998); needs the original game files
+Exec=ancientevil
+Icon=applications-games
+Terminal=false
+Categories=Game;RolePlaying;

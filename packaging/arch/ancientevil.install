@@ -1,0 +1,8 @@
+post_install() {
+    cat <<'MSG'
+Ancient Evil needs the files of the original game (not included).
+Copy the installed game folder (the one with RPG.EXE, GAMEDAT, LEVELS and
+WAV) to ~/.local/share/ancientevil, or start it with --game-dir DIR.
+For speech, movies and music copy the CD into a folder named "cd" inside it.
+MSG
+}
