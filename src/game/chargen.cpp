@@ -234,6 +234,7 @@ void ChargenIdle(int sel, int, int)
     gClassBack->Blt(gDDW, 0x46, 0xf0);
     if (sel < 0) return;
     Model *m = &gCGModels[sel];
+    if (!m->numFrames) return;   // (port: not loaded; numFrames - 1 below would wrap)
     m->SetLightRange(0x1f);
     if (gCGFrame >= m->numFrames - 1) gCGFrame = 0;
     uint32_t f = gCGFrame++;

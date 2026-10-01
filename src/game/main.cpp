@@ -95,6 +95,7 @@ int main(int argc, char **argv)
         saveDir = saves.c_str();
     }
     fileio_init(gameDir, saveDir ? saveDir : gameDir);
+    plat_install_crash_handler();
     SettingsInit();   // ancientevil.cfg and the AE_* overrides
     if (mode >= 0) gSettings.enhanced = mode;
     if (gSettings.enhanced) {
@@ -112,7 +113,33 @@ int main(int argc, char **argv)
                    "that holds RPG.EXE and the GAMEDAT, LEVELS and WAV folders.\n");
         return 1;
     }
+    // Port: the game files it cannot run without (an incomplete install,
+    // e.g. a minimum install that left them on the CD, crashed later on)
+    static const char *kNeeded[] = {
+        "action.spr", "aesmall.chr", "arms.cst", "bar.spr", "blood.cst", "bolt-00.omt", "bolt.omt", "bolt.tex",
+        "cblood.cst", "cgm.omt", "cgm.tex", "cgr.omt", "cgr.tex", "cgt.omt", "cgt.tex", "cgw.omt", "cgw.tex",
+        "chest.cst", "faces.cst", "fireball.omt", "fireball.tex", "horde.omt", "horde.tex", "invitems.cst",
+        "items.cst", "lightnin.omt", "lightnin.tex", "magmiss.omt", "magmiss.tex", "map.cst", "mouse.cst",
+        "mwall.cst", "rat.omt", "rat.tex", "rats.cst", "rpg1.chr", "runes.cst", "screen.cst", "screen2.cst",
+        "servant.amt", "servant.omt", "servant.tex", "spellfx.cst", "summon.omt", "summon.tex", "sundry1.cst",
+        "trap.cst", "witems.cst", "witems.spr", "player\\amtlist.txt"};
+    std::string missing;
+    int nMissing = 0;
+    for (const char *f : kNeeded) {
+        std::string path = std::string("GAMEDAT\\") + f;
+        if (stat(fileio_resolve(path.c_str(), false).c_str(), &st) != 0) {
+            if (nMissing < 12) missing += std::string("  GAMEDAT\\") + f + "\n";
+            nMissing++;
+        }
+    }
     plat_init(argc, argv);
+    if (nMissing) {
+        if (nMissing > 12) missing += "  ...\n";
+        std::string m = "Some files of the game are missing from '" + std::string(gameDir) + "':\n\n" + missing +
+                        "\nCopy them from your Ancient Evil CD or from a full install of the game\n"
+                        "(the CD's GAMEDAT folder). The game may crash without them.";
+        plat_message_box(m.c_str(), "Open AncientEvil");
+    }
     SettingsApplyLive();
     plat_set_abs_mouse_hook(MouseSetPosition);
     RunStaticInitializers();

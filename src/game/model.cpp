@@ -274,9 +274,15 @@ int Model::Load(const char *file)
     int fd = w_open(file, W_O_RDONLY | W_O_BINARY);
     if (fd < 0) {
         gModelError = 2;
+        LogPrintf(&gLog, "Cannot open model %s (%s)\n", file, fileio_resolve(file, false).c_str());
+        fprintf(stderr, "cannot open model %s (%s)\n", file, fileio_resolve(file, false).c_str());
         return 0;
     }
-    if (!ReadOMT(this, fd)) return 0;
+    if (!ReadOMT(this, fd)) {
+        LogPrintf(&gLog, "Cannot read model %s (error %d)\n", file, gModelError);
+        fprintf(stderr, "cannot read model %s (error %d)\n", file, gModelError);
+        return 0;
+    }
     w_close(fd);
     return 1;
 }

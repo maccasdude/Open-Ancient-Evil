@@ -10,6 +10,7 @@ void plat_set_video_mode(int w, int h);
 void plat_configure_output(int w, int h, int logicalScale);
 void plat_present(const uint16_t *px, int pitch, int w, int h);
 void plat_message_box(const char *text, const char *caption);
+void plat_install_crash_handler();   // Windows: crash.txt in the save folder
 void plat_toggle_fullscreen();
 
 // ---- messages

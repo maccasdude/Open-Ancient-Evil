@@ -76,6 +76,8 @@ if [ $DO_WIN = 1 ]; then
         cp -r "$ROOT/build-win/OpenAncientEvil" "$TMP/$N"
         cp "$ROOT/CHANGELOG.md" "$TMP/$N/"
         (cd "$TMP" && rm -f "$DIST/$N.zip" && zip -qr "$DIST/$N.zip" "$N")
+        # the same exe with its debugging symbols, to read crash.txt reports
+        (cd "$ROOT/build-win" && rm -f "$DIST/$N-debug.zip" && zip -qj "$DIST/$N-debug.zip" ancientevil-debug.exe)
     else
         echo "== windows: skipped (no mingw-w64)"
     fi

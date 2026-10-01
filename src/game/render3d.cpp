@@ -164,6 +164,12 @@ void SetModelVertexScale(float s) { gVertexScale = s; }
 // 0x40f670
 void Model::Draw(int sx, int sy, int frame, float angle)
 {
+    // (port: a model that failed to load, or a frame past its end, draws
+    // nothing instead of reading through a null frame table)
+    if (!frames || !numFrames || frame < 0 || (uint32_t)frame >= numFrames) {
+        SetRect(&gModelRect, 10000, 10000, -10000, -10000);
+        return;
+    }
     SetOrigin(sx, sy);
     if (gCutY != 0.0f)
         RenderCut(frame, angle, gCutY);
@@ -1002,6 +1008,7 @@ int gShadowAlpha;   // port: shadow strength /256 (0: the original halving)
 void Model::DrawShadow(int sx, int sy, float wx, float wy, float wz, int frame,
                        float angle, float lightX, float lightY, float lightH)
 {
+    if (!frames || !numFrames || frame < 0 || (uint32_t)frame >= numFrames) return;   // (port)
     gNumShadowFrees = 0;
     gNumShadowAllocs = 0;
     memset(gShadowRowTab, 0, sizeof(gShadowRowTab));

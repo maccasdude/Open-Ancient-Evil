@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.0.1 - 2026-10-01
+
+### Fixed
+- Crash (Windows and Linux) when a model file of the game is missing, e.g.
+  hovering a class on the character screen without `GAMEDAT\CGW.OMT`: the
+  model is left out instead. Missing game files are now listed in a message
+  at start-up, and logged in `rpglog.txt`.
+- The release build on GitHub now also runs when a release is published on
+  the website.
+
+### New
+- Windows: a crash writes `crash.txt` to the save folder; each release also
+  has a `-debug` zip with the matching exe to read it.
+
 ## 1.0.0 - 2026-10-01
 
 First release as **Open AncientEvil**.

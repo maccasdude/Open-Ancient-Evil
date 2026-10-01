@@ -1,8 +1,8 @@
 // Version information for ancientevil.exe (windres)
 #include <winver.h>
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION     1,0,0,0
-PRODUCTVERSION  1,0,0,0
+FILEVERSION     1,0,1,0
+PRODUCTVERSION  1,0,1,0
 FILEOS          VOS_NT_WINDOWS32
 FILETYPE        VFT_APP
 BEGIN
@@ -12,8 +12,8 @@ BEGIN
         BEGIN
             VALUE "FileDescription", "Open AncientEvil"
             VALUE "ProductName", "Open AncientEvil"
-            VALUE "FileVersion", "1.0.0"
-            VALUE "ProductVersion", "1.0.0"
+            VALUE "FileVersion", "1.0.1"
+            VALUE "ProductVersion", "1.0.1"
             VALUE "OriginalFilename", "ancientevil.exe"
             VALUE "LegalCopyright", "MIT License (the port). Ancient Evil (c) 1998 Silver Lightning Software."
         END

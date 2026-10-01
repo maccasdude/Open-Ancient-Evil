@@ -53,7 +53,7 @@ fi
 
 # --- the game -----------------------------------------------------------------
 echo "== ancientevil.exe"
-CXXFLAGS="-std=c++17 -O2 -fno-strict-aliasing -fwrapv -Wno-unused-result -I$SDL/include -I$SDL/include/SDL2 -Dmain=SDL_main"
+CXXFLAGS="-std=c++17 -O2 -g -fno-strict-aliasing -fwrapv -Wno-unused-result -I$SDL/include -I$SDL/include/SDL2 -Dmain=SDL_main"
 LIBS="-L$SDL/lib -lmingw32 -lSDL2main -lSDL2"
 # (SDL2 linked in statically: its system libraries)
 SYSLIBS="-ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lsetupapi -lversion -luuid -lcfgmgr32 -lbcrypt"
@@ -80,6 +80,7 @@ if [ -f "$ROOT/packaging/windows/ancientevil.rc" ]; then
     objs+=("$OBJ/res.o")
 fi
 $CXX -o "$DIST/ancientevil.exe" "${objs[@]}" -mwindows -static -static-libgcc -static-libstdc++ $LIBS $SYSLIBS -lm
+cp "$DIST/ancientevil.exe" "$OUT/ancientevil-debug.exe"   # (unstripped: maps crash.txt offsets to source lines)
 $HOST-strip "$DIST/ancientevil.exe"
 cp "$ROOT/README.md" "$DIST/README.md"
 [ -f "$ROOT/LICENSE" ] && cp "$ROOT/LICENSE" "$DIST/LICENSE.txt"
