@@ -1,1 +1,96 @@
+# Builds the Windows, Linux and Arch packages on every push and pull request
+# (downloadable from the run's "Artifacts"). Pushing a tag like v1.0.0 also
+# makes a GitHub Release with the packages attached.
+name: build
 
+on:
+  push:
+    branches: ["**"]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write   # (to create releases on tags)
+
+jobs:
+  packages:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config libsdl2-dev \
+            libavformat-dev libavcodec-dev libswscale-dev libswresample-dev libavutil-dev \
+            mingw-w64 zip curl xz-utils
+
+      - name: Version
+        id: ver
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then v="${GITHUB_REF_NAME#v}"; else v="$(cat VERSION)"; fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Windows dependencies (SDL2, FFmpeg)
+        uses: actions/cache@v4
+        with:
+          path: build-win/deps
+          key: win-deps-${{ hashFiles('tools/build-windows.sh') }}
+
+      - name: Build packages
+        env:
+          AE_VERSION: ${{ steps.ver.outputs.version }}
+        run: tools/package.sh
+
+      - name: Smoke test (Linux binary starts and reports missing game data)
+        run: |
+          tar xzf dist/OpenAncientEvil-*-linux-x64.tar.gz -C /tmp
+          set +e
+          SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy /tmp/OpenAncientEvil-*-linux-x64/ancientevil --game-dir /nonexistent
+          test $? -eq 1
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OpenAncientEvil-${{ steps.ver.outputs.version }}
+          path: dist/*
+
+  arch-check:
+    # builds the PKGBUILD in an Arch Linux container, as on CachyOS
+    needs: packages
+    runs-on: ubuntu-24.04
+    container: archlinux:latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: makepkg
+        run: |
+          pacman -Syu --noconfirm --needed base-devel sdl2 ffmpeg
+          useradd -m builder
+          mkdir /home/builder/pkg
+          tar xzf dist/OpenAncientEvil-*-arch.tar.gz -C /home/builder/pkg
+          chown -R builder /home/builder/pkg
+          cd /home/builder/pkg/OpenAncientEvil-*-arch/arch
+          su builder -c "makepkg --noconfirm"
+          ls -la *.pkg.tar.zst
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [packages, arch-check]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Release notes from CHANGELOG.md
+        run: |
+          awk '/^## /{n++} n==1' CHANGELOG.md > notes.md
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: Open AncientEvil ${{ github.ref_name }}
+          body_path: notes.md
+          files: dist/*
